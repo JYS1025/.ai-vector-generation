@@ -106,12 +106,15 @@ class AIVectorGenStudio(QMainWindow):
             self.show_error(f"Could not find the generated file: {temp_svg_path}")
             return
 
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        file_path, _ = QFileDialog.getSaveFileName(self, "Save SVG File", "", "SVG Files (*.svg);;All Files (*)", options=options)
+        dialog = QFileDialog(self, "Save File", "untitled.ai")
+        dialog.setAcceptMode(QFileDialog.AcceptSave)
+        dialog.setNameFilters(["Adobe Illustrator (*.ai)", "SVG Files (*.svg)"])
+        dialog.setDefaultSuffix("ai")
 
-        if file_path:
+        if dialog.exec_() == QFileDialog.Accepted:
+            file_path = dialog.selectedFiles()[0]
             try:
+                # The content is SVG, but we are saving with the user's chosen extension (.ai or .svg)
                 shutil.move(temp_svg_path, file_path)
                 self.status_bar.showMessage(f"File saved to {file_path}", 5000)
             except Exception as e:
