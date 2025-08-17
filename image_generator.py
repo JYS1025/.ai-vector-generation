@@ -2,6 +2,10 @@
 import requests
 import os
 import time
+from dotenv import load_dotenv
+
+# .env 파일에서 환경 변수를 로드합니다.
+load_dotenv()
 
 API_URL = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
 API_TOKEN = os.getenv("HUGGINGFACE_API_TOKEN")

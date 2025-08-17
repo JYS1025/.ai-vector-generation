@@ -39,33 +39,25 @@ AI VectorGen Studio는 사용자가 입력한 텍스트 설명(프롬프트)을 
 1. [Hugging Face 웹사이트](https://huggingface.co/join)에서 무료 계정을 생성합니다.
 2. 로그인 후, **Settings → Access Tokens** 페이지([huggingface.co/settings/tokens](https://huggingface.co/settings/tokens))로 이동합니다.
 3. **"New token"** 버튼을 클릭하여 새로운 토큰을 생성합니다. (권한은 `read`로 충분합니다.)
+4. 생성된 토큰(`hf_`로 시작)을 복사합니다.
 
 ### 3. 프로젝트 설정
 
 1. **프로젝트 파일 다운로드 또는 복제**: 이 프로젝트 파일들을 컴퓨터로 내려받습니다.
 
-2. **환경 변수 설정**: 발급받은 Hugging Face API 토큰을 `HUGGINGFACE_API_TOKEN`이라는 이름의 환경 변수로 설정해야 합니다.
-
-   - **macOS / Linux:**
-     ```bash
-     export HUGGINGFACE_API_TOKEN='여기에_발급받은_토큰을_붙여넣으세요'
-     ```
-     (이 설정을 영구적으로 적용하려면 `~/.bash_profile` 또는 `~/.zshrc` 파일에 위 라인을 추가하세요.)
-
-   - **Windows (명령 프롬프트):**
-     ```cmd
-     set HUGGINGFACE_API_TOKEN=여기에_발급받은_토큰을_붙여넣으세요
-     ```
-
-   - **Windows (PowerShell):**
-     ```powershell
-     $env:HUGGINGFACE_API_TOKEN="여기에_발급받은_토큰을_붙여넣으세요"
-     ```
-
-3. **Python 의존성 설치**: 프로젝트 디렉토리에서 터미널을 열고 아래 명령어를 실행하세요:
+2. **Python 의존성 설치**: 프로젝트 디렉토리에서 터미널을 열고 아래 명령어를 실행하여 필요한 라이브러리들을 설치합니다.
     ```bash
     pip install -r requirements.txt
     ```
+
+3. **API 토큰 설정**:
+    - 프로젝트 디렉토리에 있는 `.env` 파일을 엽니다.
+    - `your_token_here` 부분을 2단계에서 복사한 실제 Hugging Face API 토큰으로 교체하고 저장합니다.
+    - 파일 내용은 아래와 같은 형식이 됩니다:
+      ```
+      # Hugging Face API 토큰을 아래에 붙여넣으세요.
+      HUGGINGFACE_API_TOKEN="hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      ```
 
 ## 애플리케이션 실행 방법
 
@@ -75,4 +67,4 @@ AI VectorGen Studio는 사용자가 입력한 텍스트 설명(프롬프트)을 
 python main_app.py
 ```
 
-애플리케이션 GUI 창이 나타날 것입니다. 프롬프트를 입력하고 "Generate Vector" 버튼을 클릭하면, 작업 완료 후 파일을 저장하는 대화상자가 나타납니다.
+이제 애플리케이션이 `.env` 파일에서 API 토큰을 자동으로 읽어와 실행됩니다.
