@@ -1,69 +1,82 @@
 # AI VectorGen Studio
 
-AI VectorGen Studio는 사용자가 입력한 텍스트 설명(프롬프트)을 기반으로, 편집 가능한 고품질 벡터 그래픽(SVG)을 생성하는 데스크톱 애플리케이션입니다. 아이디어를 즉시 디자인 워크플로우에 통합할 수 있는 벡터 에셋으로 변환하여 창작의 초기 장벽을 낮춥니다.
+AI VectorGen Studio is a desktop application that generates high-quality, editable vector graphics (SVG) from text descriptions (prompts). It lowers the initial barrier to creation by transforming ideas into vector assets that can be immediately integrated into a design workflow.
 
-## 주요 기능
+## Features
 
-- **텍스트 → 벡터 변환**: 원하는 이미지를 텍스트로 설명하여 벡터 그래픽을 생성합니다.
-- **간편한 GUI**: 직관적인 인터페이스를 통해 벡터 파일을 손쉽게 생성하고 저장할 수 있습니다.
-- **API 기반 작동**: Together AI의 무료 API를 사용하여, 고사양의 로컬 GPU 없이 최신 모델을 사용합니다.
-- **편집 가능한 결과물**: Adobe Illustrator, Inkscape, Figma 등 모든 벡터 그래픽 소프트웨어에서 편집할 수 있는 표준 SVG 파일을 생성합니다.
+- **Text-to-Vector Conversion**: Describe the image you want with text and generate a vector graphic.
+- **Simple GUI**: An intuitive interface makes it easy to generate and save vector files.
+- **Robust Conversion**: Uses the `Pillow` library to normalize images, ensuring stable vectorization across different formats.
+- **macOS Application Support**: Can be bundled into a native macOS Application (`.app`) with a custom Dock icon using `py2app`.
 
-## 핵심 기술 스택
+## Technology Stack
 
-- **언어**: Python 3.9+
-- **GUI 프레임워크**: PyQt5
-- **이미지 생성**: Together AI API (`black-forest-labs/FLUX.1-schnell-Free`)
-- **벡터 변환**: ImageMagick + Potrace
+- **Language**: Python 3.9+
+- **GUI Framework**: PyQt5
+- **Image Generation**: Together AI API (`together`)
+- **Vector Conversion**: `vtracer`
+- **Image Processing**: `Pillow`
+- **macOS App Bundling**: `py2app`
 
-## 설치 및 설정 방법
+---
 
-프로젝트를 로컬 컴퓨터에서 실행하기 위해 다음 단계를 따르세요.
+## How to Use
 
-### 1. 사전 요구사항
+You can run this project in two ways.
 
-시스템에 아래 소프트웨어들이 먼저 설치되어 있어야 합니다:
+### Option 1: Run as a Python Script (Simple)
 
-- **Python 3.9 이상**
-- **ImageMagick**: 이미지 처리 도구
-  - [공식 웹사이트에서 다운로드 및 설치](https://imagemagick.org/script/download.php)
-- **Potrace**: 비트맵 트레이싱 도구
-  - [공식 웹사이트에서 다운로드 및 설치](http://potrace.sourceforge.net/#downloading)
+This method runs the application directly from the terminal.
 
-터미널에서 `magick`과 `potrace` 명령어가 정상적으로 실행되는지 확인하세요.
+**1. Prerequisites**
 
-### 2. Together AI API 키 발급
+- **Get a Together AI API Key**: You need an API key from [Together.ai](https://www.together.ai/) to enable image generation.
+- **Clone the Repository**: Download the project files to your local machine.
 
-이미지 생성을 위해 Together AI의 API 키가 필요합니다.
+**2. Setup**
 
-1. [Together.ai 웹사이트](https://www.together.ai/)에 가입합니다.
-2. 로그인 후, 좌측 메뉴의 **API Keys** 또는 [https://api.together.ai/settings/api-keys](https://api.together.ai/settings/api-keys) 페이지로 이동합니다.
-3. **"Generate Key"** 버튼을 클릭하여 새로운 API 키를 생성하고 복사합니다.
+1.  **Set API Key**: Create a file named `.env` in the project root and place your API key in it as follows:
+    ```
+    TOGETHER_API_KEY="your_together_api_key_here"
+    ```
+2.  **(Optional) Set Window Icon**: Place your desired icon file named `icon.png` in the project root. If found, it will be used as the window icon.
 
-### 3. 프로젝트 설정
-
-1. **프로젝트 파일 다운로드 또는 복제**: 이 프로젝트 파일들을 컴퓨터로 내려받습니다.
-
-2. **Python 의존성 설치**: 프로젝트 디렉토리에서 터미널을 열고 아래 명령어를 실행하여 필요한 라이브러리들을 설치합니다.
+3.  **Install Dependencies**: Open a terminal in the project directory and run:
     ```bash
     pip install -r requirements.txt
     ```
 
-3. **API 키 설정**:
-    - 프로젝트 디렉토리에 있는 `.env` 파일을 엽니다.
-    - `your_together_api_key_here` 부분을 2단계에서 복사한 실제 Together AI API 키로 교체하고 저장합니다.
-    - 파일 내용은 아래와 같은 형식이 됩니다:
-      ```
-      # Your API key from https://api.together.ai/settings/api-keys
-      TOGETHER_API_KEY="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-      ```
+4.  **Run the App**: Launch the application using the following command:
+    ```bash
+    python main_app.py
+    ```
 
-## 애플리케이션 실행 방법
+### Option 2: Build a Native macOS Application (`.app`)
 
-모든 설정이 완료되었다면, 프로젝트의 루트 디렉토리에서 아래 명령어를 실행하세요:
+This method packages the project into a standalone macOS application with a proper Dock icon.
 
-```bash
-python main_app.py
-```
+**1. Prerequisites**
 
-이제 애플리케이션이 `.env` 파일에서 Together AI API 키를 자동으로 읽어와 실행됩니다.
+- Complete all steps (1 & 2) from **Option 1** above.
+- **Prepare Dock Icon**: You must have an icon file named `icon.png` in the project root. This will be used as the application and Dock icon.
+
+**2. Build the Application**
+
+1.  **Install Dependencies**: Ensure all libraries, including `py2app`, are installed by running `pip install -r requirements.txt`.
+2.  **Run Build Command**: In the terminal, run the following command to start the build process.
+    ```bash
+    python setup.py py2app -A
+    ```
+    *(The `-A` or `--alias` flag uses "alias mode," which is a workaround for potential dependency analysis errors during the build process.)*
+
+3.  **Launch the App**: Once the build is complete, you will find **`AIVectorGenStudio.app`** inside the `dist` folder. You can run this file like any other macOS application, and it will appear in the Dock with your custom icon.
+
+---
+
+## On AI Model Fine-Tuning
+
+This application uses a public, pre-trained model provided by Together AI. If you wish to train the AI on your own set of images (.ai, .png, etc.) to generate results in a more personalized style, you would need to perform **fine-tuning**.
+
+- **Feasibility**: While you cannot fine-tune a model directly within this app, the **Together AI platform itself offers fine-tuning as a service**.
+- **Process**: This is an advanced workflow that typically involves preparing a dataset of `image-text` pairs, uploading it to the Together AI platform, and initiating a training job via their web interface.
+- **Conclusion**: Fine-tuning is a powerful but complex process that requires significant effort in data preparation. If you are interested, we recommend consulting the official Together AI documentation. Once your custom model is trained, you can use it in this app by simply changing the model name in the `image_generator.py` file to your new custom model ID.

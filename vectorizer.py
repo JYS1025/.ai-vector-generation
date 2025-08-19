@@ -1,58 +1,46 @@
 # vectorizer.py
-import subprocess
+import vtracer
 import os
+import io
+from PIL import Image
 
-class CommandNotFoundError(Exception):
-    "Custom exception for missing command-line tools."
+class VectorizationError(Exception):
+    "Custom exception for vectorization errors."
     pass
-
-def check_command_exists(command: str) -> bool:
-    """Checks if a command exists on the system PATH."""
-    try:
-        subprocess.run([command, "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, text=True)
-        return True
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        try:
-            # Fallback for tools that use -version or other syntax
-            subprocess.run([command, "-version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, text=True)
-            return True
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            return False
 
 def vectorize_image(input_path: str, output_svg_path: str):
     """
-    Converts a raster image to a posterized SVG.
-    Raises exceptions for errors.
+    Converts a raster image to an SVG. It normalizes the image with Pillow
+    before passing its data to vtracer to handle potential format issues.
     """
-    if not os.path.exists(input_path):
+    try:
+        # 1. Read the raw image file into memory.
+        with open(input_path, 'rb') as f:
+            image_bytes = f.read()
+
+        if not image_bytes:
+            raise VectorizationError("Input image file is empty.")
+
+        # 2. Normalize the image using Pillow to resolve format/encoding issues.
+        # Open the image from the raw bytes.
+        img_buffer_in = io.BytesIO(image_bytes)
+        img = Image.open(img_buffer_in)
+
+        # Save the image back to a new in-memory buffer in a standard PNG format.
+        img_buffer_out = io.BytesIO()
+        img.save(img_buffer_out, format="PNG")
+        normalized_image_bytes = img_buffer_out.getvalue()
+
+        # 3. Convert the normalized image bytes to an SVG string using vtracer.
+        svg_string = vtracer.convert_raw_image_to_svg(normalized_image_bytes, img_format='png')
+
+        # 4. Write the resulting SVG string to the output file.
+        with open(output_svg_path, 'w') as f:
+            f.write(svg_string)
+
+    except FileNotFoundError:
+        # Re-raise the specific error if the input file is not found.
         raise FileNotFoundError(f"Input file not found at '{input_path}'")
-
-    if not check_command_exists("magick"):
-        raise CommandNotFoundError("ImageMagick is not installed or not in the system's PATH.")
-        
-    if not check_command_exists("potrace"):
-        raise CommandNotFoundError("Potrace is not installed or not in the system's PATH.")
-
-    base_name = os.path.splitext(input_path)[0]
-    temp_bmp = f"{base_name}_posterized.bmp"
-
-    # Step 1: Posterize using ImageMagick
-    magick_command = ["magick", input_path, "-posterize", "8", temp_bmp]
-    try:
-        subprocess.run(magick_command, check=True, capture_output=True, text=True)
-    except subprocess.CalledProcessError as e:
-        # Clean up before raising
-        if os.path.exists(temp_bmp):
-            os.remove(temp_bmp)
-        raise Exception(f"Error during ImageMagick processing: {e.stderr}")
-
-    # Step 2: Vectorize using Potrace
-    potrace_command = ["potrace", temp_bmp, "--svg", "-o", output_svg_path]
-    try:
-        subprocess.run(potrace_command, check=True, capture_output=True, text=True)
-    except subprocess.CalledProcessError as e:
-        raise Exception(f"Error during Potrace processing: {e.stderr}")
-    finally:
-        # Step 3: Clean up temporary file
-        if os.path.exists(temp_bmp):
-            os.remove(temp_bmp)
+    except Exception as e:
+        # Wrap other exceptions in our custom error type.
+        raise VectorizationError(f"Error during vtracer processing: {e}")

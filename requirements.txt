@@ -2,3 +2,6 @@ PyQt5
 python-dotenv
 together
 requests
+vtracer
+Pillow
+py2app

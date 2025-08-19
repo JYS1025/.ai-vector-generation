@@ -7,11 +7,12 @@ from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, 
     QLabel, QLineEdit, QPushButton, QStatusBar, QMessageBox, QFileDialog
 )
+from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QThread, pyqtSignal
 
 # Import refactored logic
 from image_generator import generate_image_api, ApiTokenError
-from vectorizer import vectorize_image, CommandNotFoundError
+from vectorizer import vectorize_image, VectorizationError
 
 class GenerationWorker(QThread):
     """Runs the image generation and vectorization in a separate thread."""
@@ -25,35 +26,47 @@ class GenerationWorker(QThread):
 
     def run(self):
         try:
-            # Create unique filenames for this run
+            # Get the absolute path for the current directory to resolve paths correctly.
+            work_dir = os.path.abspath(os.getcwd())
+            
+            # Create unique absolute filenames for this run
             run_id = str(uuid.uuid4())
-            temp_png = f"{run_id}.png"
-            temp_svg = f"{run_id}.svg"
+            temp_png = os.path.join(work_dir, f"{run_id}.png")
+            temp_svg = os.path.join(work_dir, f"{run_id}.svg")
 
-            # Step 1: Generate Image
-            self.progress.emit("Generating image via API...")
+            # Step 1: Generate Image from API
+            self.progress.emit("1/3: Generating image from AI (can take up to a minute)...")
             generate_image_api(self.prompt, temp_png)
 
-            # Step 2: Vectorize Image
-            self.progress.emit("Vectorizing image...")
+            # Step 2: Vectorize the generated image
+            self.progress.emit("2/3: Vectorizing image...")
             vectorize_image(temp_png, temp_svg)
 
-            # Step 3: Clean up the temp PNG
-            if os.path.exists(temp_png):
-                os.remove(temp_png)
-
+            # Step 3: Process is complete
+            self.progress.emit("3/3: Finalizing...")
             self.finished.emit(temp_svg)
 
-        except (ApiTokenError, CommandNotFoundError, FileNotFoundError) as e:
+        except (ApiTokenError, VectorizationError, FileNotFoundError) as e:
             self.error.emit(str(e))
         except Exception as e:
             self.error.emit(f"An unexpected error occurred: {e}")
+        finally:
+            # Final cleanup: ensure the temporary PNG is removed even if errors occur after its creation.
+            if os.path.exists(temp_png):
+                os.remove(temp_png)
 
 class AIVectorGenStudio(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("AI VectorGen Studio")
         self.setGeometry(200, 200, 500, 150)
+
+        # --- Set App Icon ---
+        # Build an absolute path to the icon file relative to the script's location
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        icon_path = os.path.join(script_dir, "icon.png")
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QIcon(icon_path))
 
         # --- UI Elements ---
         self.prompt_label = QLabel("Enter your prompt:")
@@ -106,10 +119,10 @@ class AIVectorGenStudio(QMainWindow):
             self.show_error(f"Could not find the generated file: {temp_svg_path}")
             return
 
-        dialog = QFileDialog(self, "Save File", "untitled.ai")
+        dialog = QFileDialog(self, "Save SVG File", "untitled.svg")
         dialog.setAcceptMode(QFileDialog.AcceptSave)
-        dialog.setNameFilters(["Adobe Illustrator (*.ai)", "SVG Files (*.svg)"])
-        dialog.setDefaultSuffix("ai")
+        dialog.setNameFilters(["SVG Files (*.svg)"])
+        dialog.setDefaultSuffix("svg")
 
         if dialog.exec_() == QFileDialog.Accepted:
             file_path = dialog.selectedFiles()[0]
